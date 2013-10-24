@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      #header {
+        text-align: right;
+        border-bottom: solid 1px #ccc;
+        padding-bottom: 0.25em;
+        margin-bottom: 1em;
+      }
+      #xblock_xml {
+        width: 40em;
+        height: 15em;
+      }
+      #results {
+        border: solid 1px #ccc;
+        padding: 0.5em;
+        margin-top: 1em;
+      }
+      .hidden {
+        display: none;
+      }
+      div.error {
+        background-color: yellow;
+        color: red;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="header">
+      {{email}} |
+      <a href="{{logout_url}}">Logout</a>
+    </div>
+    <h1>Welcome to XBlock on Google App Engine!</h1>
+    <p>
+      Enter the XML for a tree of XBlocks and press "Submit".
+    </p>
+    <div>
+      <textarea id="xblock_xml"></textarea>
+    </div>
+    <div>
+      <button id="submit_xml_button">Submit</button>
+    </div>
+    <div id="results" class="hidden"></div>
+      <script src="/static/js/vendor/jquery.min.js"></script>
+      <script type="text/javascript">
+        $(function() {
+          $('#submit_xml_button').click(function() {
+            console.log($('#xblock_xml').val());
+            $.ajax({
+              url: '/rest/xblock',
+              type: 'POST',
+              contentType: 'text/xml',
+              data: $('#xblock_xml').val(),
+              dataType: 'json',
+              success: function(data) {
+                displayResults(data, $('#results'));
+              }
+            });
+          });
+          $('#xblock_xml').val(
+              '<vertical>\n' +
+              '  <html>\n' +
+              '    Enter XBlock XML into this window and click submit.\n' +
+              '    Follow the link that appears to view and interact with\n' +
+              '    your XBlocks.\n' +
+              '  </html>\n' +
+              '  <thumbs/>\n' +
+              '</vertical>');
+
+          function displayResults(results, resultsDiv) {
+            resultsDiv.removeClass('hidden');
+            if (results.status === 'OK') {
+              resultsDiv.empty();
+              resultsDiv.removeClass('error');
+              $('<a/>', {
+                href: '/display_xblock?' + $.param({usage_id: results.usage_id}),
+                target: '_blank',
+                text: 'Go to usage ' + results.usage_id}).appendTo(resultsDiv);
+            } else if (results.status === 'ERROR') {
+              resultsDiv.text(results.message);
+              resultsDiv.addClass('error');
+            }
+          }
+        });
+      </script>
+  </body>
+</html>

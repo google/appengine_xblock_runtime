@@ -1,0 +1,30 @@
+# YAML configuration file for the sample Google App Engine app found
+# in the examples/ folder.
+
+application: xblock-example
+version: 1
+runtime: python27
+api_version: 1
+threadsafe: no
+
+env_variables:
+  DJANGO_SETTINGS_MODULE: 'django_settings'
+
+handlers:
+- url: /resource/workbench
+  static_dir: lib/XBlock/workbench/static
+- url: /static
+  static_dir: lib/XBlock/workbench/static
+- url: /.*
+  script: main.app
+  login: required
+
+libraries:
+- name: django
+  version: "1.4"
+- name: jinja2
+  version: "2.6"
+- name: lxml
+  version: "2.3"
+- name: webapp2
+  version: "2.5.2"
