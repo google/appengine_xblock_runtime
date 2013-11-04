@@ -65,6 +65,9 @@ class WorkbenchRuntime(appengine_xblock_runtime.runtime.Runtime):
     def query(self, block):
         return _BlockSet(self, [block])
 
+    def resources_url(self, resource):
+        return '/static/%s' % resource
+
 
 class XBlockEndpointHandler(webapp2.RequestHandler):
     """Router for all callbacks from XBlocks."""
@@ -143,7 +146,6 @@ class XblockRestHandler(webapp2.RequestHandler):
         self.response.write(xml_buffer.getvalue())
 
     def post(self):
-        assert users.is_current_user_admin()
         assert self.request.headers['Content-Type'] == 'text/xml'
 
         self.response.headers['Content-Type'] = 'application/json'
