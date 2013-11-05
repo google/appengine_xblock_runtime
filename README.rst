@@ -32,7 +32,7 @@ cannot be run on your platform, follow the steps below:
 
     1. Download the XBlock_ repo from GitHub into the ``examples/lib/`` folder.
        For consistency, you should check out commit
-       ``159680985627d8f8efc2a1a2e32a1b0bdb778542``.
+       ``2daa4e541c1613a703262c9dcd6be9c1928b1299``.
 
     2. In the ``examples/lib/XBlock`` folder, execute:
        ``python setup.py egg_info``

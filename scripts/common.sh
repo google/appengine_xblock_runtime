@@ -35,7 +35,7 @@ fi
 if [ ! -d XBlock ]; then
   git clone https://github.com/edx/XBlock.git
   cd XBlock
-  git co 159680985627d8f8efc2a1a2e32a1b0bdb778542
+  git checkout 2daa4e541c1613a703262c9dcd6be9c1928b1299
   python setup.py egg_info
   cd thumbs
   python setup.py egg_info
