@@ -25,6 +25,19 @@ import xblock.runtime
 from google.appengine.ext import testbed
 
 
+class RuntimeForTest(runtime.Runtime):
+
+    def handler_url(
+            self, block, handler_name, suffix='', query='', thirdparty=False):
+        raise Exception("Not Used By Tests")
+
+    def resources_url(self, resource):
+        raise Exception("Not Used By Tests")
+
+    def local_resource_url(self, block, uri):
+        raise Exception("Not Used By Tests")
+
+
 class TestRuntime(unittest.TestCase):
     """Integration tests between XBlock and the runtime."""
 
@@ -37,11 +50,11 @@ class TestRuntime(unittest.TestCase):
         self.testbed.init_datastore_v3_stub()
         self.testbed.init_memcache_stub()
 
-        self.runtime = runtime.Runtime(student_id=self.STUDENT_ID)
+        self.runtime = RuntimeForTest(student_id=self.STUDENT_ID)
 
     def test_html_block(self):
         """Test persistence of fields in content scope."""
-        usage_id = self.runtime.parse_xml_string('<html>text</html>')
+        usage_id = self.runtime.parse_xml_string('<html_demo>text</html_demo>')
         block = self.runtime.get_block(usage_id)
 
         key = xblock.runtime.KeyValueStore.Key(
@@ -54,7 +67,7 @@ class TestRuntime(unittest.TestCase):
 
     def test_slider_block(self):
         """Test peristence of fields in user scope."""
-        usage_id = self.runtime.parse_xml_string('<slider/>')
+        usage_id = self.runtime.parse_xml_string('<slider_demo/>')
         block = self.runtime.get_block(usage_id)
 
         block.value = 50

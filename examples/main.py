@@ -26,9 +26,10 @@ import handlers
 
 
 app = webapp2.WSGIApplication([
-    ('/handler/(\d*)/(.*)/', handlers.XBlockEndpointHandler),
-    ('/display_xblock', handlers.DisplayXblockPageHandler),
-    ('/rest/xblock', handlers.XblockRestHandler),
-    ('/rest/xblock/(\d*)', handlers.XblockRestHandler),
-    ('/.*', handlers.DefaultPageHandler)
+    (r'/handler/(\d*)/(.*)/', handlers.XBlockEndpointHandler),
+    (r'/local_resource/([^/]*)/(.*)', handlers.XBlockLocalResourceHandler),
+    (r'/display_xblock', handlers.DisplayXblockPageHandler),
+    (r'/rest/xblock', handlers.XblockRestHandler),
+    (r'/rest/xblock/(\d*)', handlers.XblockRestHandler),
+    (r'/.*', handlers.DefaultPageHandler)
 ], debug=True)

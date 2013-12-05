@@ -18,14 +18,18 @@ __author__ = 'John Orr (jorr@google.com)'
 
 from cStringIO import StringIO
 import json
+import mimetypes
 import os
 import urllib
+
 import appengine_xblock_runtime.runtime
 import django.template.loader
 import jinja2
 import webapp2
 from workbench.runtime import _BlockSet
+from xblock.core import XBlock
 from xblock.fragment import Fragment
+
 from google.appengine.api import users
 
 
@@ -68,6 +72,13 @@ class WorkbenchRuntime(appengine_xblock_runtime.runtime.Runtime):
     def resources_url(self, resource):
         return '/static/%s' % resource
 
+    def handler_url(
+            self, block, handler_name, suffix='', query='', thirdparty=False):
+        raise Exception('Not used')
+
+    def local_resource_url(self, block, uri):
+        return '/local_resource/%s/%s' % (block.scope_ids.block_type, uri)
+
 
 class XBlockEndpointHandler(webapp2.RequestHandler):
     """Router for all callbacks from XBlocks."""
@@ -88,6 +99,24 @@ class XBlockEndpointHandler(webapp2.RequestHandler):
         response = block.runtime.handle(block, handler_name, self.request)
         self.response.body = response.body
         self.response.headers.update(response.headers)
+
+
+class XBlockLocalResourceHandler(webapp2.RequestHandler):
+    """Router for requests for a block's local resources."""
+
+    def get(self, block_type, resource):
+        xblock_class = XBlock.load_class(block_type)
+
+        mimetype = mimetypes.guess_type(resource)[0]
+        if mimetype is None:
+            mimetype = 'application/octet-stream'
+
+        self.response.status = 200
+        self.response.headers['Content-Type'] = mimetype
+        self.response.cache_control.no_cache = None
+        self.response.cache_control.public = 'public'
+        self.response.cache_control.max_age = 600
+        self.response.write(xblock_class.open_local_resource(resource).read())
 
 
 class BasePageHandler(webapp2.RequestHandler):
@@ -156,7 +185,7 @@ class XblockRestHandler(webapp2.RequestHandler):
             self.response.write(json.dumps({
                 'status': 'OK',
                 'usage_id': str(usage_id)}))
-        except Exception as e:
+        except Exception as e:  # pylint: disable-msg=broad-except
             self.response.write(json.dumps({
                 'status': 'ERROR',
                 'message': str(e)}))

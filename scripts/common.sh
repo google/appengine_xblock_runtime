@@ -4,6 +4,8 @@
 
 CWD=`pwd`
 
+XBLOCK_GIT_REV=ad196d339ba484a70e797edca2686a36dbd634d9
+
 # Locate or install Google App Engine SDK
 GOOGLE_APP_ENGINE_HOME=
 if [ ! -d "$GOOGLE_APP_ENGINE_HOME" ]; then
@@ -35,7 +37,7 @@ fi
 if [ ! -d XBlock ]; then
   git clone https://github.com/edx/XBlock.git
   cd XBlock
-  git checkout 2daa4e541c1613a703262c9dcd6be9c1928b1299
+  git checkout $XBLOCK_GIT_REV
   python setup.py egg_info
   cd thumbs
   python setup.py egg_info
