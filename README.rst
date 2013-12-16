@@ -5,6 +5,17 @@ A library that provides an XBlock runtime environment which uses the Google App
 Engine datastore.
 
 
+Release Notes
+-------------
+
+    * 2013-12-16: Change Datastore entities to persist data in JSON blobs.
+      **NOTE:** This is incompatible with previous versions.
+
+    * 2013-12-10 and 2013-11-05: Upate the version of XBlock
+
+    * 2013-10-24: Initial relaese.
+
+
 Dependencies
 ------------
 

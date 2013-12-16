@@ -23,16 +23,51 @@ import xblock.runtime
 from google.appengine.ext import ndb
 
 
-class DefinitionEntity(ndb.Model):
-    block_type = ndb.StringProperty(indexed=False)
+class BaseEntity(ndb.Model):
+    """ The base datastore entity for XBlock data.
+
+    XBlock data is stored in subclasses of this class. The data is wrapped
+    as a JSON blob held in the field 'data'. Subclasses provide convenience
+    accessor methods.
+    """
+    data = ndb.TextProperty(indexed=False)
+
+    def _get(self, field_name):
+        return json.loads(self.data).get(field_name)
+
+    def _set(self, field_name, value):
+        json_dict = json.loads(self.data) if self.data else {}
+        json_dict[field_name] = value
+        self.data = json.dumps(json_dict)
 
 
-class UsageEntity(ndb.Model):
-    definition = ndb.KeyProperty(kind=DefinitionEntity, indexed=False)
+class DefinitionEntity(BaseEntity):
+
+    @property
+    def block_type(self):
+        return self._get('block_type')
+    @block_type.setter
+    def block_type(self, value):
+        self._set('block_type', value)
 
 
-class KeyValueEntity(ndb.Model):
-    value_json = ndb.TextProperty(indexed=False)
+class UsageEntity(BaseEntity):
+
+    @property
+    def definition_id(self):
+        return self._get('definition_id')
+    @definition_id.setter
+    def definition_id(self, value):
+        self._set('definition_id', value)
+
+class KeyValueEntity(BaseEntity):
+
+    @property
+    def value(self):
+        return self._get('value')
+    @value.setter
+    def value(self, value):
+        self._set('value', value)
 
 
 class UsageStore(xblock.runtime.UsageStore):
@@ -47,14 +82,15 @@ class UsageStore(xblock.runtime.UsageStore):
         """Create a new usage id bound to the given definition id."""
         definition = ndb.Key(DefinitionEntity, int(def_id))
         assert definition.get() is not None
-        usage = UsageEntity(definition=definition)
+        usage = UsageEntity()
+        usage.definition_id = def_id
         key = usage.put()
         return str(key.id())
 
     def get_definition_id(self, usage_id):
         """Retrieve the definition id to which this usage id is bound."""
         usage = ndb.Key(UsageEntity, int(usage_id)).get()
-        return str(usage.definition.id())
+        return str(usage.definition_id)
 
     def create_definition(self, block_type):
         """Create a new definition id, bound to the given block type.
@@ -65,7 +101,8 @@ class UsageStore(xblock.runtime.UsageStore):
         Returns:
             str. The id of the new definition.
         """
-        definition = DefinitionEntity(block_type=block_type)
+        definition = DefinitionEntity()
+        definition.block_type = block_type
         key = definition.put()
         return str(key.id())
 
@@ -110,12 +147,15 @@ class KeyValueStore(xblock.runtime.KeyValueStore):
         kv_entity = ndb.Key(KeyValueEntity, self._key_string(key)).get()
         if kv_entity is None:
             raise KeyError()
-        return json.loads(kv_entity.value_json)['value']
+        return kv_entity.value
 
     def set(self, key, value):
         """Sets the given value in the store. Overwrite any previous value."""
         key = ndb.Key(KeyValueEntity, self._key_string(key))
-        KeyValueEntity(key=key, value_json=json.dumps({'value': value})).put()
+        kv_entity = KeyValueEntity(key=key)
+        kv_entity.value = value
+        kv_entity.put()
+
 
     def delete(self, key):
         """Deletes the given key from the store. No-op if the key is absent."""
