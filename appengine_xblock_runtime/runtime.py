@@ -24,9 +24,10 @@ import store
 class Runtime(xblock.runtime.Runtime):
     """An XBlock runtime which uses the App Engine datastore."""
 
-    def __init__(self, student_id=None):
-        super(Runtime, self).__init__(
-            store.UsageStore(), xblock.runtime.DbModel(store.KeyValueStore()))
+    def __init__(self, field_data=None, student_id=None):
+        if field_data is None:
+            field_data = xblock.runtime.DbModel(store.KeyValueStore())
+        super(Runtime, self).__init__(store.UsageStore(), field_data)
         self.student_id = student_id
 
     def get_block(self, usage_id):
