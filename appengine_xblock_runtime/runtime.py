@@ -20,21 +20,69 @@ from xblock.fields import ScopeIds
 import xblock.runtime
 import store
 
+from google.appengine.ext import ndb
+
+
+class IdReader(xblock.runtime.IdReader):
+    """Implementation of XBlock IdReader using App Engine datastore."""
+
+    def get_definition_id(self, usage_id):
+        """Retrieve the definition id to which this usage id is bound."""
+        usage = ndb.Key(store.UsageEntity, int(usage_id)).get()
+        return str(usage.definition_id)
+
+    def get_block_type(self, def_id):
+        """Retrieve the block type to which this definition is bound."""
+        definition = ndb.Key(store.DefinitionEntity, int(def_id)).get()
+        return definition.block_type
+
+
+class IdGenerator(xblock.runtime.IdGenerator):
+    """Implementation of XBlock IdGenerator using App Engine datastore.
+
+    This manages the graph of many-to-one relationships between
+    usages, definitions, and blocks. The schema is:
+        usage (n) -- (1) definition (n) -- (1) block_type
+    """
+
+    def create_usage(self, def_id):
+        """Create a new usage id bound to the given definition id."""
+        definition = ndb.Key(store.DefinitionEntity, int(def_id))
+        assert definition.get() is not None
+        usage = store.UsageEntity()
+        usage.definition_id = def_id
+        key = usage.put()
+        return str(key.id())
+
+    def create_definition(self, block_type):
+        """Create a new definition id, bound to the given block type.
+
+        Args:
+            block_type: str. The type of the XBlock for this definition.
+
+        Returns:
+            str. The id of the new definition.
+        """
+        definition = store.DefinitionEntity()
+        definition.block_type = block_type
+        key = definition.put()
+        return str(key.id())
+
 
 class Runtime(xblock.runtime.Runtime):
     """An XBlock runtime which uses the App Engine datastore."""
 
     def __init__(self, field_data=None, student_id=None):
         if field_data is None:
-            field_data = xblock.runtime.DbModel(store.KeyValueStore())
-        super(Runtime, self).__init__(store.UsageStore(), field_data)
+            field_data = xblock.runtime.KvsFieldData(store.KeyValueStore())
+        super(Runtime, self).__init__(IdReader(), field_data)
         self.student_id = student_id
 
     def get_block(self, usage_id):
         """Create an XBlock instance in this runtime."""
 
-        def_id = self.usage_store.get_definition_id(usage_id)
-        block_type = self.usage_store.get_block_type(def_id)
+        def_id = self.id_reader.get_definition_id(usage_id)
+        block_type = self.id_reader.get_block_type(def_id)
         keys = ScopeIds(self.student_id, block_type, def_id, usage_id)
         block = self.construct_xblock(block_type, keys)
         return block

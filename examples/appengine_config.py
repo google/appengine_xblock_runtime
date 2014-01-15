@@ -23,7 +23,11 @@ import pkg_resources
 # this is the official location of this app for computing of all relative paths
 BUNDLE_ROOT = os.path.dirname(__file__)
 
-eggs = ['appengine_xblock_runtime', 'XBlock', os.path.join('XBlock', 'thumbs')]
+eggs = [
+    'appengine_xblock_runtime',
+    'XBlock',
+    os.path.join('XBlock', 'demo_xblocks'),
+    os.path.join('XBlock', 'thumbs')]
 for egg in eggs:
     egg = os.path.join(BUNDLE_ROOT, 'lib', egg)
     pkg_resources.working_set.add_entry(egg)

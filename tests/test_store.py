@@ -19,6 +19,7 @@ __author__ = 'John Orr (jorr@google.com)'
 import unittest
 
 from appengine_xblock_runtime import store
+import appengine_xblock_runtime.runtime
 import xblock.fields
 import xblock.runtime
 from google.appengine.ext import testbed
@@ -43,23 +44,24 @@ class TestUsageStore(BaseTestCase):
 
     def setUp(self):
         super(TestUsageStore, self).setUp()
-        self.usage_store = store.UsageStore()
+        self.id_reader = appengine_xblock_runtime.runtime.IdReader()
+        self.id_generator = appengine_xblock_runtime.runtime.IdGenerator()
 
     def test_create_and_get_definition(self):
         '''Should be able to create and then retrieve a definition id.'''
-        def_id = self.usage_store.create_definition('my_block')
-        self.assertEqual('my_block', self.usage_store.get_block_type(def_id))
+        def_id = self.id_generator.create_definition('my_block')
+        self.assertEqual('my_block', self.id_reader.get_block_type(def_id))
 
     def test_create_and_get_usage(self):
         '''Should be able to create and then retrieve a usage id.'''
-        def_id = self.usage_store.create_definition('my_block')
-        usage_id = self.usage_store.create_usage(def_id)
-        self.assertEqual(def_id, self.usage_store.get_definition_id(usage_id))
+        def_id = self.id_generator.create_definition('my_block')
+        usage_id = self.id_generator.create_usage(def_id)
+        self.assertEqual(def_id, self.id_reader.get_definition_id(usage_id))
 
     def test_cannot_create_usage_with_nonexistent_definition(self):
         '''Should not create a usage bound to a non-existent definition.'''
         try:
-            self.usage_store.create_usage('123')
+            self.id_generator.create_usage('123')
             self.fail('Expected assertion to fail')
         except AssertionError:
             pass

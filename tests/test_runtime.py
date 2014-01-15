@@ -51,10 +51,12 @@ class TestRuntime(unittest.TestCase):
         self.testbed.init_memcache_stub()
 
         self.runtime = RuntimeForTest(student_id=self.STUDENT_ID)
+        self.id_generator = runtime.IdGenerator()
 
     def test_html_block(self):
         """Test persistence of fields in content scope."""
-        usage_id = self.runtime.parse_xml_string('<html_demo>text</html_demo>')
+        usage_id = self.runtime.parse_xml_string(
+            '<html_demo>text</html_demo>', self.id_generator)
         block = self.runtime.get_block(usage_id)
 
         key = xblock.runtime.KeyValueStore.Key(
@@ -67,7 +69,8 @@ class TestRuntime(unittest.TestCase):
 
     def test_slider_block(self):
         """Test peristence of fields in user scope."""
-        usage_id = self.runtime.parse_xml_string('<slider_demo/>')
+        usage_id = self.runtime.parse_xml_string(
+            '<slider_demo/>', self.id_generator)
         block = self.runtime.get_block(usage_id)
 
         block.value = 50

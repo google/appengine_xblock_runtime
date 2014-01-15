@@ -17,5 +17,5 @@
 __author__ = 'John Orr (jorr@google.com)'
 
 TEMPLATE_DIRS = (
-    'lib/XBlock/xblock/templates',
+    'lib/XBlock/demo_xblocks/demo_xblocks/templates',
 )

@@ -180,7 +180,8 @@ class XblockRestHandler(webapp2.RequestHandler):
         self.response.headers['Content-Type'] = 'application/json'
         try:
             rt = WorkbenchRuntime()
-            usage_id = rt.parse_xml_string(self.request.body)
+            id_generator = appengine_xblock_runtime.runtime.IdGenerator()
+            usage_id = rt.parse_xml_string(self.request.body, id_generator)
 
             self.response.write(json.dumps({
                 'status': 'OK',

@@ -24,7 +24,7 @@ from google.appengine.ext import ndb
 
 
 class BaseEntity(ndb.Model):
-    """ The base datastore entity for XBlock data.
+    """The base datastore entity for XBlock data.
 
     XBlock data is stored in subclasses of this class. The data is wrapped
     as a JSON blob held in the field 'data'. Subclasses provide convenience
@@ -46,6 +46,7 @@ class DefinitionEntity(BaseEntity):
     @property
     def block_type(self):
         return self._get('block_type')
+
     @block_type.setter
     def block_type(self, value):
         self._set('block_type', value)
@@ -56,60 +57,21 @@ class UsageEntity(BaseEntity):
     @property
     def definition_id(self):
         return self._get('definition_id')
+
     @definition_id.setter
     def definition_id(self, value):
         self._set('definition_id', value)
+
 
 class KeyValueEntity(BaseEntity):
 
     @property
     def value(self):
         return self._get('value')
+
     @value.setter
     def value(self, value):
         self._set('value', value)
-
-
-class UsageStore(xblock.runtime.UsageStore):
-    """Implementation of XBlock UsageStore using App Engine datastore.
-
-    The usage store manages the graph of many-to-one relationships between
-    usages, definitions, and blocks. The schema is:
-        usage (n) -- (1) definition (n) -- (1) block_type
-    """
-
-    def create_usage(self, def_id):
-        """Create a new usage id bound to the given definition id."""
-        definition = ndb.Key(DefinitionEntity, int(def_id))
-        assert definition.get() is not None
-        usage = UsageEntity()
-        usage.definition_id = def_id
-        key = usage.put()
-        return str(key.id())
-
-    def get_definition_id(self, usage_id):
-        """Retrieve the definition id to which this usage id is bound."""
-        usage = ndb.Key(UsageEntity, int(usage_id)).get()
-        return str(usage.definition_id)
-
-    def create_definition(self, block_type):
-        """Create a new definition id, bound to the given block type.
-
-        Args:
-            block_type: str. The type of the XBlock for this definition.
-
-        Returns:
-            str. The id of the new definition.
-        """
-        definition = DefinitionEntity()
-        definition.block_type = block_type
-        key = definition.put()
-        return str(key.id())
-
-    def get_block_type(self, def_id):
-        """Retrieve the block type to which this definition is bound."""
-        definition = ndb.Key(DefinitionEntity, int(def_id)).get()
-        return definition.block_type
 
 
 class KeyValueStore(xblock.runtime.KeyValueStore):
@@ -155,7 +117,6 @@ class KeyValueStore(xblock.runtime.KeyValueStore):
         kv_entity = KeyValueEntity(key=key)
         kv_entity.value = value
         kv_entity.put()
-
 
     def delete(self, key):
         """Deletes the given key from the store. No-op if the key is absent."""

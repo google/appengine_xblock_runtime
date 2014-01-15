@@ -9,6 +9,10 @@
 
 . scripts/common.sh
 
-export PYTHONPATH=$GOOGLE_APP_ENGINE_HOME:$GOOGLE_APP_ENGINE_HOME/lib/webob-1.2.3:examples/lib/XBlock
+PYTHONPATH=$GOOGLE_APP_ENGINE_HOME
+PYTHONPATH=$PYTHONPATH:$GOOGLE_APP_ENGINE_HOME/lib/webob-1.2.3
+PYTHONPATH=$PYTHONPATH:examples/lib/XBlock
+PYTHONPATH=$PYTHONPATH:examples/lib/XBlock/demo_xblocks
+export PYTHONPATH
 
 python -m unittest discover -v -s ./tests
