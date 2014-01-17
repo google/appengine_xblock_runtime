@@ -72,17 +72,9 @@ class IdGenerator(xblock.runtime.IdGenerator):
 class Runtime(xblock.runtime.Runtime):
     """An XBlock runtime which uses the App Engine datastore."""
 
-    def __init__(self, field_data=None, student_id=None):
-        if field_data is None:
-            field_data = xblock.runtime.KvsFieldData(store.KeyValueStore())
-        super(Runtime, self).__init__(IdReader(), field_data)
-        self.student_id = student_id
-
-    def get_block(self, usage_id):
-        """Create an XBlock instance in this runtime."""
-
-        def_id = self.id_reader.get_definition_id(usage_id)
-        block_type = self.id_reader.get_block_type(def_id)
-        keys = ScopeIds(self.student_id, block_type, def_id, usage_id)
-        block = self.construct_xblock(block_type, keys)
-        return block
+    def __init__(self, field_data=None, student_id=None, **kwargs):
+        super(Runtime, self).__init__(
+            IdReader(),
+            field_data or xblock.runtime.KvsFieldData(store.KeyValueStore()),
+            **kwargs)
+        self.user_id = student_id
