@@ -18,6 +18,7 @@ __author__ = 'John Orr (jorr@google.com)'
 
 from cStringIO import StringIO
 import json
+import logging
 import mimetypes
 import os
 import urllib
@@ -69,8 +70,11 @@ class WorkbenchRuntime(appengine_xblock_runtime.runtime.Runtime):
     def query(self, block):
         return _BlockSet(self, [block])
 
-    def resources_url(self, resource):
+    def resource_url(self, resource):
         return '/static/%s' % resource
+
+    def publish(self, block, event):
+        logging.info(event)
 
     def handler_url(
             self, block, handler_name, suffix='', query='', thirdparty=False):

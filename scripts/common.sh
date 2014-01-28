@@ -4,7 +4,7 @@
 
 CWD=`pwd`
 
-XBLOCK_GIT_REV=40a949eb934ddb7ec71cd6b935772500aec8bf1c
+XBLOCK_GIT_REV=de92d3bf798699a6bbd06b54012ef15934c41ac0
 
 # Locate or install Google App Engine SDK
 GOOGLE_APP_ENGINE_HOME=
