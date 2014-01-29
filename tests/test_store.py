@@ -20,6 +20,7 @@ import unittest
 
 from appengine_xblock_runtime import store
 import appengine_xblock_runtime.runtime
+import xblock.exceptions
 import xblock.fields
 import xblock.runtime
 from google.appengine.ext import testbed
@@ -64,6 +65,22 @@ class TestUsageStore(BaseTestCase):
             self.id_generator.create_usage('123')
             self.fail('Expected assertion to fail')
         except AssertionError:
+            pass
+
+    def test_get_non_existent_usage_raises_exception(self):
+        """Should raise NoSuchUsage when non-existent usage_id requested."""
+        try:
+            self.id_reader.get_definition_id('i_dont_exist')
+            self.fail('Expected NoSuchUsage exception')
+        except xblock.exceptions.NoSuchUsage:
+            pass
+
+    def test_get_non_existent_definition_raises_exception(self):
+        """Should raise NoSuchDefinition when non-existent def_id requested."""
+        try:
+            self.id_reader.get_block_type('i_dont_exist')
+            self.fail('Expected NoSuchDefinition exception')
+        except xblock.exceptions.NoSuchDefinition:
             pass
 
 
@@ -124,7 +141,7 @@ class TestKeyValueStore(BaseTestCase):
             pass
 
     def test_delete_without_add(self):
-        '''Delete of non-existant key should pass as no-op.'''
+        '''Delete of non-existent key should pass as no-op.'''
         key = self._user_state_key()
         self.assertFalse(self.key_value_store.has(key))
         # Expect no exception

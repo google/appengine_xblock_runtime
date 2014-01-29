@@ -10,4 +10,4 @@
 . scripts/common.sh
 
 cd examples
-$GOOGLE_APP_ENGINE_HOME/dev_appserver.py .
+$GOOGLE_APP_ENGINE_HOME/dev_appserver.py $* .

@@ -17,8 +17,10 @@
 __author__ = 'John Orr (jorr@google.com)'
 
 from xblock.fields import ScopeIds
+import xblock.exceptions
 import xblock.runtime
 import store
+import uuid
 
 from google.appengine.ext import ndb
 
@@ -28,12 +30,16 @@ class IdReader(xblock.runtime.IdReader):
 
     def get_definition_id(self, usage_id):
         """Retrieve the definition id to which this usage id is bound."""
-        usage = ndb.Key(store.UsageEntity, int(usage_id)).get()
+        usage = ndb.Key(store.UsageEntity, str(usage_id)).get()
+        if usage is None:
+            raise xblock.exceptions.NoSuchUsage(str(usage_id))
         return str(usage.definition_id)
 
     def get_block_type(self, def_id):
         """Retrieve the block type to which this definition is bound."""
-        definition = ndb.Key(store.DefinitionEntity, int(def_id)).get()
+        definition = ndb.Key(store.DefinitionEntity, str(def_id)).get()
+        if definition is None:
+            raise xblock.exceptions.NoSuchDefinition(str(def_id))
         return definition.block_type
 
 
@@ -45,14 +51,18 @@ class IdGenerator(xblock.runtime.IdGenerator):
         usage (n) -- (1) definition (n) -- (1) block_type
     """
 
+    def _generate_uuid(self):
+        return uuid.uuid4().hex
+
     def create_usage(self, def_id):
         """Create a new usage id bound to the given definition id."""
-        definition = ndb.Key(store.DefinitionEntity, int(def_id))
-        assert definition.get() is not None
-        usage = store.UsageEntity()
+        definition_key = ndb.Key(store.DefinitionEntity, str(def_id))
+        assert definition_key.get() is not None
+        usage_id = self._generate_uuid()
+        usage = store.UsageEntity(id=usage_id)
         usage.definition_id = def_id
-        key = usage.put()
-        return str(key.id())
+        usage.put()
+        return usage_id
 
     def create_definition(self, block_type):
         """Create a new definition id, bound to the given block type.
@@ -63,10 +73,11 @@ class IdGenerator(xblock.runtime.IdGenerator):
         Returns:
             str. The id of the new definition.
         """
-        definition = store.DefinitionEntity()
+        definition_id = self._generate_uuid()
+        definition = store.DefinitionEntity(id=definition_id)
         definition.block_type = block_type
-        key = definition.put()
-        return str(key.id())
+        definition.put()
+        return definition_id
 
 
 class Runtime(xblock.runtime.Runtime):
