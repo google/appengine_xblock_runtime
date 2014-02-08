@@ -74,25 +74,26 @@ class KeyValueEntity(BaseEntity):
         self._set('value', value)
 
 
+def key_string(key):
+    key_list = []
+    if key.scope == Scope.children:
+        key_list.append('children')
+    elif key.scope == Scope.parent:
+        key_list.append('parent')
+    else:
+        key_list.append(
+            ['usage', 'definition', 'type', 'all'][key.scope.block])
+
+    if key.block_scope_id is not None:
+        key_list.append(key.block_scope_id)
+    if key.user_id:
+        key_list.append(key.user_id)
+    key_list.append(key.field_name)
+    return '.'.join(key_list)
+
+
 class KeyValueStore(xblock.runtime.KeyValueStore):
     """Implementation of XBlock KeyValueStore using App Engine datastore."""
-
-    def _key_string(self, key):
-        key_list = []
-        if key.scope == Scope.children:
-            key_list.append('children')
-        elif key.scope == Scope.parent:
-            key_list.append('parent')
-        else:
-            key_list.append(
-                ['usage', 'definition', 'type', 'all'][key.scope.block])
-
-        if key.block_scope_id is not None:
-            key_list.append(key.block_scope_id)
-        if key.user_id:
-            key_list.append(key.user_id)
-        key_list.append(key.field_name)
-        return '.'.join(key_list)
 
     def get(self, key):
         """Retrieve the value for the given key.
@@ -106,22 +107,32 @@ class KeyValueStore(xblock.runtime.KeyValueStore):
         Raises:
             KeyError: If there is no matching key in the store.
         """
-        kv_entity = ndb.Key(KeyValueEntity, self._key_string(key)).get()
+        kv_entity = ndb.Key(KeyValueEntity, key_string(key)).get()
         if kv_entity is None:
             raise KeyError()
         return kv_entity.value
 
     def set(self, key, value):
         """Sets the given value in the store. Overwrite any previous value."""
-        key = ndb.Key(KeyValueEntity, self._key_string(key))
+        key = ndb.Key(KeyValueEntity, key_string(key))
         kv_entity = KeyValueEntity(key=key)
         kv_entity.value = value
         kv_entity.put()
 
+    def set_many(self, update_dict):
+        entities = []
+        for key, value in update_dict.iteritems():
+            ndb_key = ndb.Key(KeyValueEntity, key_string(key))
+            kv_entity = KeyValueEntity(key=ndb_key)
+            kv_entity.value = value
+            entities.append(kv_entity)
+        ndb.put_multi(entities)
+
     def delete(self, key):
         """Deletes the given key from the store. No-op if the key is absent."""
-        ndb.Key(KeyValueEntity, self._key_string(key)).delete()
+        ndb.Key(KeyValueEntity, key_string(key)).delete()
 
     def has(self, key):
         """Checks whether the key already has a value set in the store."""
-        return ndb.Key(KeyValueEntity, self._key_string(key)).get() is not None
+        return ndb.Key(KeyValueEntity, key_string(key)).get(
+            use_memcache=False) is not None

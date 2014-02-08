@@ -25,6 +25,10 @@ import uuid
 from google.appengine.ext import ndb
 
 
+def generate_id():
+    return uuid.uuid4().hex
+
+
 class IdReader(xblock.runtime.IdReader):
     """Implementation of XBlock IdReader using App Engine datastore."""
 
@@ -51,14 +55,11 @@ class IdGenerator(xblock.runtime.IdGenerator):
         usage (n) -- (1) definition (n) -- (1) block_type
     """
 
-    def _generate_uuid(self):
-        return uuid.uuid4().hex
-
     def create_usage(self, def_id):
         """Create a new usage id bound to the given definition id."""
         definition_key = ndb.Key(store.DefinitionEntity, str(def_id))
         assert definition_key.get() is not None
-        usage_id = self._generate_uuid()
+        usage_id = generate_id()
         usage = store.UsageEntity(id=usage_id)
         usage.definition_id = def_id
         usage.put()
@@ -73,7 +74,7 @@ class IdGenerator(xblock.runtime.IdGenerator):
         Returns:
             str. The id of the new definition.
         """
-        definition_id = self._generate_uuid()
+        definition_id = generate_id()
         definition = store.DefinitionEntity(id=definition_id)
         definition.block_type = block_type
         definition.put()
@@ -83,9 +84,10 @@ class IdGenerator(xblock.runtime.IdGenerator):
 class Runtime(xblock.runtime.Runtime):
     """An XBlock runtime which uses the App Engine datastore."""
 
-    def __init__(self, field_data=None, student_id=None, **kwargs):
+    def __init__(
+            self, id_reader=None, field_data=None, student_id=None, **kwargs):
         super(Runtime, self).__init__(
-            IdReader(),
+            id_reader or IdReader(),
             field_data or xblock.runtime.KvsFieldData(store.KeyValueStore()),
             **kwargs)
         self.user_id = student_id
