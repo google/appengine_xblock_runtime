@@ -16,13 +16,23 @@
 
 __author__ = 'John Orr (jorr@google.com)'
 
-from xblock.fields import ScopeIds
-import xblock.exceptions
-import xblock.runtime
-import store
+import logging
 import uuid
 
+import store
+
+import xblock.exceptions
+import xblock.runtime
+
 from google.appengine.ext import ndb
+
+
+logging.warning("""
+WARNING: This version of the App Engine XBlock Runtime does not implement any
+transactional locking. As a result, during periods of high traffic, inconsistent
+results are possible arising from race conditions and data contention. We are
+actively working on this, and future releases of the runtime will mitigate the
+issue.""")
 
 
 def generate_id():
